@@ -1,0 +1,44 @@
+---
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: example-dataset
+spec:
+  local:
+    type: "COS"
+    accessKeyID: ""
+    secretAccessKey: ""
+    endpoint: "https://storage.googleapis.com"
+    bucket: ""
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: example
+    dataset.0.id: "example-dataset"
+    dataset.0.useas: "mount"
+spec:
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts:
+      - mountPath: "/usr/share/nginx/html"
+        name: "example-dataset"
+  volumes:
+  - name: "example-dataset"
+    persistentVolumeClaim:
+      claimName: "example-dataset"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: example
+  ports:
+  - port: 80
+    targetPort: 80
